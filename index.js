@@ -32,38 +32,10 @@ app.get('/talker/:id', rescue(async (req, res) => {
   res.status(HTTP_OK_STATUS).json(talkerId);
 }));
 
-// const isValidToken = (req, res, next) => {
-//   const token = req.body.authorization;
-//   const tokenRegex = new RegExp(/^[a-zA-Z0-9]{16}$/);
-
-//   crypto.randomBytes(token, (err, buf) => {
-//     if (err) {
-//       console.log(err);
-//       return err;
-//     }
-//     console.log(buf.toString('hex'));
-//   });
-
-//   if (!tokenRegex.test(token)) {
-//     return res.status(400).json({ message: 'invalid token' });
-//   }
-
-//   next();
-// };
-
 app.post('/login', (req, res) => {
-  const token = req.body.authorization;
-  // const { email, password } = req.body;
+  const token = crypto.randomBytes(8).toString('hex');
 
-  crypto.randomBytes(8, (err, buf) => {
-    if (err) {
-      console.log(err);
-      return err;
-    }
-    console.log(buf.toString('hex'));
-  });
-
-  res.status(HTTP_OK_STATUS).json(token);
+  res.status(HTTP_OK_STATUS).json({ token });
 });
 
 app.listen(PORT, () => {
