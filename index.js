@@ -3,7 +3,17 @@ const rescue = require('express-rescue');
 const crypto = require('crypto');
 const bodyParser = require('body-parser');
 const { readTalkers } = require('./helpers/readfile.js');
-const { isValidEmail, isValidPassword } = require('./middlewares/validations.js');
+const { writeTalkers } = require('./helpers/writefile.js');
+const { 
+  isValidEmail,
+  isValidPassword,
+  isValidToken,
+  isValidName,
+  isValidAge,
+  isValidTalk,
+  isValidWatchedAt,
+  isValidRate,
+ } = require('./middlewares/validations.js');
 
 const app = express();
 app.use(bodyParser.json());
@@ -16,27 +26,39 @@ app.get('/', (_request, response) => {
   response.status(HTTP_OK_STATUS).send();
 });
 
-app.use(isValidEmail, isValidPassword);
-
-app.get('/talker', rescue(async (_req, res) => {
-  const data = await readTalkers();
-  res.status(HTTP_OK_STATUS).json(data);
-}));
-
 app.get('/talker/:id', rescue(async (req, res) => {
   const data = await readTalkers();
   const { id } = req.params;
   const talkerId = data.find((r) => r.id === Number(id));
   if (!talkerId) return res.status(404).json({ message: 'Pessoa palestrante não encontrada' });
-
-  res.status(HTTP_OK_STATUS).json(talkerId);
+  
+  return res.status(HTTP_OK_STATUS).json(talkerId);
 }));
 
-app.post('/login', (req, res) => {
+app.get('/talker', rescue(async (_req, res) => {
+  const data = await readTalkers();
+  return res.status(HTTP_OK_STATUS).json(data);
+}));
+
+app.post('/login', isValidEmail, isValidPassword, (req, res) => {
   const token = crypto.randomBytes(8).toString('hex');
 
-  res.status(HTTP_OK_STATUS).json({ token });
+  return res.status(HTTP_OK_STATUS).json({ token });
 });
+
+app.post('/talker', isValidToken, isValidName, isValidAge, isValidTalk, 
+isValidRate, isValidWatchedAt, rescue(async (req, res) => {
+  const { name, age, talk: { watchedAt, rate } } = req.body;
+  const data = await readTalkers();
+  
+  const newTalker = { id: data.length + 1, name, age, talk: { watchedAt, rate } };
+  
+  data.push(newTalker);
+
+  await writeTalkers(data);
+
+  return res.status(201).json(newTalker);
+}));
 
 app.listen(PORT, () => {
   console.log('Online');
