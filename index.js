@@ -26,6 +26,19 @@ app.get('/', (_request, response) => {
   response.status(HTTP_OK_STATUS).send();
 });
 
+app.get('/talker/search', isValidToken, rescue(async (req, res) => {
+  const { q } = req.query;
+  const data = await readTalkers();
+
+  const filterTalkers = data.filter((r) => r.name.includes(q));
+  
+  if (!filterTalkers) return res.status(HTTP_OK_STATUS).json([]);
+
+  await writeTalkers(filterTalkers);
+  
+  return res.status(HTTP_OK_STATUS).json(filterTalkers);
+}));
+
 app.get('/talker/:id', rescue(async (req, res) => {
   const data = await readTalkers();
   const { id } = req.params;
