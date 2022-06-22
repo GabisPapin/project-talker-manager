@@ -60,6 +60,23 @@ isValidRate, isValidWatchedAt, rescue(async (req, res) => {
   return res.status(201).json(newTalker);
 }));
 
+app.put('/talker/:id', isValidToken, isValidName, isValidAge, isValidTalk,
+isValidRate, isValidWatchedAt, rescue(async (req, res) => {
+  const { id } = req.params;
+  const { name, age, talk: { watchedAt, rate } } = req.body;
+  const data = await readTalkers();
+
+  const talkerIndex = data.findIndex((r) => r.id === Number(id));
+
+  const talkerEdit = { ...data[talkerIndex], name, age, talk: { watchedAt, rate } };
+
+  data[talkerIndex] = talkerEdit;
+
+  await writeTalkers(data);
+
+  return res.status(HTTP_OK_STATUS).json(talkerEdit);
+}));
+
 app.listen(PORT, () => {
   console.log('Online');
 });
