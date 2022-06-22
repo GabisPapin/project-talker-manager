@@ -77,6 +77,21 @@ isValidRate, isValidWatchedAt, rescue(async (req, res) => {
   return res.status(HTTP_OK_STATUS).json(talkerEdit);
 }));
 
+app.delete('/talker/:id', isValidToken, rescue(async (req, res) => {
+  const { id } = req.params;
+  const data = await readTalkers();
+
+  const talkerIndex = data.findIndex((r) => r.id === Number(id));
+
+  const talkerDel = data.splice(talkerIndex, 1);
+
+  data[talkerIndex] = talkerDel;
+
+  await writeTalkers(data);
+
+  return res.status(204).end();
+}));
+
 app.listen(PORT, () => {
   console.log('Online');
 });
